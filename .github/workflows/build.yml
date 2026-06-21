@@ -32,15 +32,25 @@ jobs:
           grep -rl "import AppKit" --include="*.swift" . || echo "No more AppKit imports"
           echo "=== Files importing Carbon ==="
           grep -rl "import Carbon" --include="*.swift" . || echo "No more Carbon imports"
+      - name: Auto-generate Xcode Schemes
+        run: |
+         gem install xcodeproj
+         ruby -e "require 'xcodeproj'; project = Xcodeproj::Project.open('KeePassium.xcodeproj'); project.recreate_user_schemes; project.save"
+      - name: Resolve SPM Dependencies
+        run: |
+         xcodebuild -resolvePackageDependencies \
+         -workspace "KeePassium.xcworkspace" \
+         -scheme "KeePassium"
 
       - name: Build KeePassium
         run: |
           xcodebuild build \
-            -project KeePassium.xcodeproj \
-            CONFIGURATION_BUILD_DIR="./build" \
+            -workspace "KeePassium.xcworkspace" \
             -target KeePassium \
             -sdk iphoneos \
             -configuration Release \
+            -scheme "KeePassium" \
+            -derivedDataPath ./build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
