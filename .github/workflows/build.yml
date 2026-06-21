@@ -47,6 +47,7 @@ jobs:
           xcodebuild build \
             -project "KeePassium.xcodeproj" \
             -sdk iphoneos \
+            -destination "generic/platform=iOS" \
             -configuration Release \
             -scheme "KeePassium" \
             -derivedDataPath ./build \
