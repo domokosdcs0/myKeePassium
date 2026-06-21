@@ -29,20 +29,31 @@ jobs:
         run: |
          gem install xcodeproj
          ruby -e "require 'xcodeproj'; project = Xcodeproj::Project.open('KeePassium.xcodeproj'); project.recreate_user_schemes; project.save"
-      - name: Cache Swift Package Manager
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/Library/Caches/org.swift.swiftpm
-            ~/Library/org.swift.swiftpm
-          key: ${{ runner.os }}-spm-${{ hashFiles('**/*.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-spm-
+
       - name: Resolve SPM Dependencies
         run: |
          xcodebuild -resolvePackageDependencies \
          -workspace "KeePassium.xcworkspace" \
          -scheme "KeePassium"
+
+      - name: Generate Dummy App Icon
+        run: |
+          ICON_DIR="KeePassium/Assets.xcassets/app-icon.appiconset"
+          mkdir -p "$ICON_DIR"
+          
+          # Create a minimal, empty Contents.json that Xcode accepts
+          cat <<EOF > "$ICON_DIR/Contents.json"
+          {
+            "images" : [],
+            "info" : {
+              "author" : "xcode",
+              "version" : 1
+            }
+          }
+          EOF
+          
+          echo "Dummy app icon created at $ICON_DIR"
+
 
       - name: Build KeePassium
         run: |
