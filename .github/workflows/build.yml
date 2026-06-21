@@ -15,8 +15,15 @@ jobs:
         run: |
           sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
           sudo xcodebuild -runFirstLaunch
+          
+          # Wake up and initialize the CoreSimulator daemon silently
+          xcrun simctl list > /dev/null
+          
+          # Now download the platform
           xcodebuild -downloadPlatform iOS
+          
           xcodebuild -version
+
 
       - name: Patch macOS-only files for iOS build
         run: |
