@@ -25,22 +25,6 @@ jobs:
           xcodebuild -version
 
 
-      - name: Patch macOS-only files for iOS build
-        run: |
-          # MacUtilsImpl.swift 使用了 AppKit（仅 macOS），用 #if os(macOS) 包裹整个文件
-          for file in KeePassium/util/macos/MacUtilsImpl.swift; do
-            if [ -f "$file" ]; then
-              echo "Patching $file"
-              sed -i '' '1s/^/#if os(macOS)\n/' "$file"
-              echo -e '\n#endif' >> "$file"
-            fi
-          done
-
-          # 查找其他可能导入 AppKit 的文件
-          echo "=== Files importing AppKit ==="
-          grep -rl "import AppKit" --include="*.swift" . || echo "No more AppKit imports"
-          echo "=== Files importing Carbon ==="
-          grep -rl "import Carbon" --include="*.swift" . || echo "No more Carbon imports"
       - name: Auto-generate Xcode Schemes
         run: |
          gem install xcodeproj
