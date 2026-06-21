@@ -39,13 +39,13 @@ jobs:
       - name: Resolve SPM Dependencies
         run: |
          xcodebuild -resolvePackageDependencies \
-         -workspace "KeePassium.xcworkspace" \
+         -project "KeePassium.xcodeproj" \
          -scheme "KeePassium"
 
       - name: Build KeePassium
         run: |
           xcodebuild build \
-            -workspace "KeePassium.xcworkspace" \
+            -project "KeePassium.xcodeproj" \
             -target KeePassium \
             -sdk iphoneos \
             -configuration Release \
