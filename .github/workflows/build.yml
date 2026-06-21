@@ -37,7 +37,6 @@ jobs:
         run: |
           xcodebuild build \
             -project KeePassium.xcodeproj \
-            -workspace KeePassium.xcworkspace \
             CONFIGURATION_BUILD_DIR="./build_output" \
             -target KeePassium \
             -sdk iphoneos \
