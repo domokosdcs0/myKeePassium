@@ -38,16 +38,25 @@ jobs:
         run: |
          gem install xcodeproj
          ruby -e "require 'xcodeproj'; project = Xcodeproj::Project.open('KeePassium.xcodeproj'); project.recreate_user_schemes; project.save"
+      - name: Cache Swift Package Manager
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ~/Library/org.swift.swiftpm
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/*.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
       - name: Resolve SPM Dependencies
         run: |
          xcodebuild -resolvePackageDependencies \
-         -project "KeePassium.xcodeproj" \
+         -workspace "KeePassium.xcworkspace" \
          -scheme "KeePassium"
 
       - name: Build KeePassium
         run: |
           xcodebuild build \
-            -project "KeePassium.xcodeproj" \
+            -workspace "KeePassium.xcworkspace" \
             -sdk iphoneos \
             -destination "generic/platform=iOS" \
             -configuration Release \
@@ -76,7 +85,7 @@ jobs:
       - name: Install ldid
         run: brew install ldid
 
-      - name: Package IPA for TrollStore
+      - name: Package TIPA for TrollStore
         run: |
           APP_PATH=$(find ./build -name "KeePassium.app" -path "*/Release-iphoneos/*" -not -path "*/PlugIns/*" | head -1)
 
@@ -108,8 +117,33 @@ jobs:
           cp -r "$APP_PATH" Payload/
           zip -r KeePassium.tipa Payload
           echo "Done! Size: $(du -h KeePassium.tipa | cut -f1)"
+      - name: Package IPA
+        run: |
+          # Find the compiled .app file
+          APP_PATH=$(find ./build -name "KeePassium.app" -path "*/Release-iphoneos/*" -not -path "*/PlugIns/*" | head -1)
+
+          if [ -z "$APP_PATH" ]; then
+            echo "KeePassium.app not found, listing all .app:"
+            find ./build -name "*.app" | head -20
+            APP_PATH=$(find ./build -name "*.app" -path "*/Release-iphoneos/*" -not -path "*/PlugIns/*" | head -1)
+          fi
+
+          echo "App path: $APP_PATH"
+
+          # Create Payload directory structure and zip it as .ipa
+          mkdir -p Payload
+          cp -r "$APP_PATH" Payload/
+          zip -r KeePassium.ipa Payload
+          
+          echo "Done! Size: $(du -h KeePassium.ipa | cut -f1)"
 
       - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: KeePassium-ipa
+          path: KeePassium.ipa
+
+      - name: Upload TIPA
         uses: actions/upload-artifact@v4
         with:
           name: KeePassium-TrollStore
